@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
 
 import api from '../../services/api';
@@ -30,16 +31,40 @@ export default class User extends Component {
 
   state = {
     stars: [],
+    page: 1,
+    loading: false,
   };
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.loadStars();
+  }
+
+  loadStars = async () => {
+    const { loading } = this.state;
+
+    if (loading) return;
+
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
-    const response = await api.get(`/users/${user.login}/starred`);
+    this.setState({ loading: true });
 
-    this.setState({ stars: response.data });
-  }
+    const { page, stars } = this.state;
+
+    const response = await api.get(`/users/${user.login}/starred?page=${page}`);
+
+    this.setState({
+      stars: [...stars, ...response.data],
+      loading: false,
+      page: page + 1,
+    });
+  };
+
+  renderFooter = () => {
+    const { loading } = this.state;
+
+    return loading && <ActivityIndicator color="#999" />;
+  };
 
   render() {
     const { navigation } = this.props;
@@ -67,6 +92,9 @@ export default class User extends Component {
               </Info>
             </Starred>
           )}
+          onEndReached={this.loadStars}
+          onEndReachedThreshold={0.2}
+          ListFooterComponent={this.renderFooter}
         />
       </Container>
     );
