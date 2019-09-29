@@ -4,24 +4,15 @@ import PropTypes from 'prop-types';
 
 import api from '../../services/api';
 
-import {
-  Container,
-  Header,
-  Avatar,
-  Name,
-  Bio,
-  Stars,
-  Starred,
-  OwnerAvatar,
-  Info,
-  Title,
-  Author,
-} from './styles';
+import Repository from './components/Repository';
+
+import { Container, Header, Avatar, Name, Bio, Stars } from './styles';
 
 export default class User extends Component {
   static propTypes = {
     navigation: PropTypes.shape({
       getParam: PropTypes.func,
+      navigate: PropTypes.func,
     }).isRequired,
   };
 
@@ -78,16 +69,6 @@ export default class User extends Component {
     );
   };
 
-  renderItem = ({ item }) => (
-    <Starred>
-      <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
-      <Info>
-        <Title>{item.name}</Title>
-        <Author>{item.owner.login}</Author>
-      </Info>
-    </Starred>
-  );
-
   renderFooter = () => {
     const { loadingMore } = this.state;
 
@@ -120,7 +101,9 @@ export default class User extends Component {
           <Stars
             data={stars}
             keyExtractor={star => String(star.id)}
-            renderItem={this.renderItem}
+            renderItem={({ item }) => (
+              <Repository data={item} navigation={navigation} />
+            )}
             ListFooterComponent={this.renderFooter}
             onEndReachedThreshold={0.2}
             onEndReached={() => {
